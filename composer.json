@@ -1,0 +1,20 @@
+{
+  "name": "alexius-byte/rider-php",
+  "description": "Mini PHP Framework",
+  "minimum-stability": "stable",
+  "license": "proprietary",
+  "require": {
+    "php": "^8.1",
+    "ext-pdo": "*",
+    "ext-iconv": "*",
+    "ext-curl": "*",
+    "ext-openssl": "*",
+    "ext-fileinfo": "*",
+    "ext-mbstring": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "Rider\\System\\": "src/"
+    }
+  }
+}
