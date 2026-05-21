@@ -10,10 +10,10 @@ class HttpResponse
     private array $customHeaders = [];
 
     private const SECURITY_HEADERS = [
-        'X-Content-Type-Options'  => 'nosniff',
-        'X-Frame-Options'         => 'DENY',
-        'X-XSS-Protection'        => '0',
-        'Referrer-Policy'         => 'strict-origin-when-cross-origin',
+        'X-Content-Type-Options' => 'nosniff',
+        'X-Frame-Options' => 'DENY',
+        'X-XSS-Protection' => '0',
+        'Referrer-Policy' => 'strict-origin-when-cross-origin',
         'Content-Security-Policy' => "default-src 'self'",
     ];
 
@@ -45,6 +45,11 @@ class HttpResponse
         $this->emit('application/json');
         echo $encoded !== false ? $encoded : '{}';
         exit;
+    }
+
+    public function jsonError(string $message, int $status = 400): never
+    {
+        $this->json(['error' => true, 'message' => $message], $status);
     }
 
     public function html(string $content, int $status = 200): never
