@@ -66,26 +66,32 @@ class Request
 
     public function arg(string $key): mixed
     {
-        if (!isset($this->args->$key)) {
-            throw new RequestException('Missing required route argument: ' . $key);
-        }
-        return $this->args->$key;
+        return $this->resolve($this->args, $key, 'route argument');
     }
 
     public function query(string $key): mixed
     {
-        if (!isset($this->query->$key)) {
-            throw new RequestException('Missing required query parameter: ' . $key);
-        }
-        return $this->query->$key;
+        return $this->resolve($this->query, $key, 'query parameter');
     }
 
     public function body(string $key): mixed
     {
-        if (!isset($this->body->$key)) {
-            throw new RequestException('Missing required body field: ' . $key);
+        return $this->resolve($this->body, $key, 'body field');
+    }
+
+    private function resolve(object $data, string $key, string $context): mixed
+    {
+        $segments = explode(':', $key);
+        $current = $data;
+
+        foreach ($segments as $segment) {
+            if (!is_object($current) || !isset($current->$segment)) {
+                throw new RequestException('Missing required ' . $context . ': ' . $key);
+            }
+            $current = $current->$segment;
         }
-        return $this->body->$key;
+
+        return $current;
     }
 
     private function sanitizeObject(stdClass $obj): stdClass
