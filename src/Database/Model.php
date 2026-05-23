@@ -154,9 +154,10 @@ abstract class Model
         $insertData = [];
 
         foreach ($data as $key => $value) {
-            if (is_string($value) && preg_match('/^([+-])(\d+)$/', $value, $m)) {
-                $incrementals[$key] = ['op' => $m[1], 'amount' => (int) $m[2]];
-                $insertData[$key] = (int) $m[2];
+            if (is_string($value) && preg_match('/^([+-])(\d+(?:\.\d+)?)$/', $value, $m)) {
+                $amount = str_contains($m[2], '.') ? (float) $m[2] : (int) $m[2];
+                $incrementals[$key] = ['op' => $m[1], 'amount' => $amount];
+                $insertData[$key] = $amount;
             } else {
                 $insertData[$key] = $value;
             }
