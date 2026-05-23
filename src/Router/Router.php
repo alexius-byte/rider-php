@@ -177,6 +177,12 @@ class Router
             }
 
             [$class, $method] = $handler;
+
+            if (!method_exists($class, $method)) {
+                $this->errorCode = 404;
+                return;
+            }
+
             (new $class())->$method($request);
         } catch (SchemaException $e) {
             (new HttpResponse())->json(['error' => true, 'message' => array_values($e->errors())[0]], 422);
