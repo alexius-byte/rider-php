@@ -68,6 +68,17 @@ abstract class Model
         return $stmt->fetchAll();
     }
 
+    public function search(string $column, string $value): array
+    {
+        $order = $this->buildOrderBy();
+        $stmt = $this->pdo->prepare(
+            "SELECT * FROM {$this->table} WHERE {$column} LIKE ?" . $order
+        );
+        $stmt->execute(["%{$value}%"]);
+
+        return $stmt->fetchAll();
+    }
+
     public function between(string $column, mixed $min, mixed $max, bool $all = false): array|object|null
     {
         $order = $all ? $this->buildOrderBy() : '';
