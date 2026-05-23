@@ -62,17 +62,32 @@ class ExportDatabase
         $stmt->execute();
 
         $columns = null;
+        $batch = [];
 
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             if ($columns === null) {
                 $columns = '`' . implode('`, `', array_keys($row)) . '`';
             }
 
-            $values = implode(', ', array_map(fn(mixed $v) => $this->quote($v), $row));
-            fwrite($handle, "INSERT INTO `{$table}` ({$columns}) VALUES ({$values});\n");
+            $batch[] = '(' . implode(', ', array_map(fn(mixed $v) => $this->quote($v), $row)) . ')';
+
+            if (count($batch) === 500) {
+                $this->flushBatch($handle, $table, $columns, $batch);
+                $batch = [];
+            }
+        }
+
+        if ($batch !== []) {
+            $this->flushBatch($handle, $table, $columns, $batch);
         }
 
         fwrite($handle, "\n");
+    }
+
+    private function flushBatch(mixed $handle, string $table, string $columns, array $rows): void
+    {
+        fwrite($handle, "INSERT INTO `{$table}` ({$columns}) VALUES\n");
+        fwrite($handle, implode(",\n", $rows) . ";\n");
     }
 
     private function quote(mixed $value): string
