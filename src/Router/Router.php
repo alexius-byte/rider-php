@@ -63,7 +63,8 @@ class Router
 
     private function resolvePath(string $path): string
     {
-        return $this->currentGroup . '/' . ltrim($path, '/');
+        $full = $this->currentGroup . '/' . ltrim($path, '/');
+        return $full === '/' ? '/' : rtrim($full, '/');
     }
 
     private function addRoute(HttpMethod $method, string $path, array|callable $handler): void
@@ -107,6 +108,9 @@ class Router
         $uri = $_SERVER['REQUEST_URI'];
         $parsed = parse_url($uri, PHP_URL_PATH);
         $path = rawurldecode($parsed ?? '/');
+        if ($path !== '/') {
+            $path = rtrim($path, '/');
+        }
 
         if (isset($this->staticRoutes[$method][$path])) {
             [$handler, $middlewares] = $this->staticRoutes[$method][$path];
