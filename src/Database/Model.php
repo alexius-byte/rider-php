@@ -150,18 +150,39 @@ abstract class Model
             $data['updated_at'] = $now;
         }
 
-        $columns = implode(', ', array_map(fn(string $c) => "`{$c}`", array_keys($data)));
-        $placeholders = implode(', ', array_fill(0, count($data), '?'));
+        $incrementals = [];
+        $insertData = [];
+
+        foreach ($data as $key => $value) {
+            if (is_string($value) && preg_match('/^([+-])(\d+)$/', $value, $m)) {
+                $incrementals[$key] = ['op' => $m[1], 'amount' => (int) $m[2]];
+                $insertData[$key] = (int) $m[2];
+            } else {
+                $insertData[$key] = $value;
+            }
+        }
+
+        $columns = implode(', ', array_map(fn(string $c) => "`{$c}`", array_keys($insertData)));
+        $placeholders = implode(', ', array_fill(0, count($insertData), '?'));
 
         $skipOnUpdate = [$this->primaryKey, 'created_at'];
-        $updates = implode(', ', array_map(
-            fn(string $col) => "`{$col}` = VALUES(`{$col}`)",
-            array_filter(array_keys($data), fn($col) => !in_array($col, $skipOnUpdate, true))
-        ));
+        $updates = [];
 
-        $sql = "INSERT INTO {$this->table} ({$columns}) VALUES ({$placeholders}) ON DUPLICATE KEY UPDATE {$updates}";
+        foreach (array_keys($insertData) as $col) {
+            if (in_array($col, $skipOnUpdate, true)) {
+                continue;
+            }
 
-        $this->pdo->prepare($sql)->execute(array_values($data));
+            if (isset($incrementals[$col])) {
+                $updates[] = "`{$col}` = `{$col}` {$incrementals[$col]['op']} {$incrementals[$col]['amount']}";
+            } else {
+                $updates[] = "`{$col}` = VALUES(`{$col}`)";
+            }
+        }
+
+        $sql = "INSERT INTO {$this->table} ({$columns}) VALUES ({$placeholders}) ON DUPLICATE KEY UPDATE " . implode(', ', $updates);
+
+        $this->pdo->prepare($sql)->execute(array_values($insertData));
     }
 
     public function update(object $entity): bool
