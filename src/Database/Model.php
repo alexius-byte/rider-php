@@ -113,6 +113,24 @@ abstract class Model
         return (int)$stmt->fetchColumn();
     }
 
+    public function sum(array $columns, ?array $where = null): array
+    {
+        $selects = implode(', ', array_map(fn(string $c) => "SUM(`{$c}`) AS `{$c}`", $columns));
+        $sql = "SELECT {$selects} FROM {$this->table}";
+
+        $params = [];
+        if (!empty($where)) {
+            $conditions = implode(' AND ', array_map(fn(string $c) => "`{$c}` = ?", array_keys($where)));
+            $sql .= " WHERE {$conditions}";
+            $params = array_values($where);
+        }
+
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($params);
+
+        return (array) $stmt->fetch();
+    }
+
     public function create(array $data): int|string
     {
         $externalId = $data[$this->primaryKey] ?? null;
