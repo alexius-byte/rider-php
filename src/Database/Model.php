@@ -112,10 +112,18 @@ abstract class Model
         return $result === false ? null : $result;
     }
 
-    public function count(): int
+    public function count(?string $column = null, mixed $value = null): int
     {
-        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM {$this->table}");
-        $stmt->execute();
+        $sql = "SELECT COUNT(*) FROM {$this->table}";
+        $params = [];
+
+        if ($column !== null) {
+            $sql .= " WHERE `{$column}` = ?";
+            $params[] = $value;
+        }
+
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($params);
 
         return (int)$stmt->fetchColumn();
     }
