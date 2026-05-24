@@ -20,25 +20,31 @@ class Router
     private string $currentGroup = '';
     private array $currentMiddleware = [];
     private int|null $errorCode = null;
+    private static array $namedRoutes = [];
 
-    public function get(string $path, array|callable $handler): void
+    public function get(string $path, array|callable $handler, string $name = ''): void
     {
-        $this->addRoute(HttpMethod::GET, $path, $handler);
+        $this->addRoute(HttpMethod::GET, $path, $handler, $name);
     }
 
-    public function post(string $path, array|callable $handler): void
+    public function post(string $path, array|callable $handler, string $name = ''): void
     {
-        $this->addRoute(HttpMethod::POST, $path, $handler);
+        $this->addRoute(HttpMethod::POST, $path, $handler, $name);
     }
 
-    public function put(string $path, array|callable $handler): void
+    public function put(string $path, array|callable $handler, string $name = ''): void
     {
-        $this->addRoute(HttpMethod::PUT, $path, $handler);
+        $this->addRoute(HttpMethod::PUT, $path, $handler, $name);
     }
 
-    public function delete(string $path, array|callable $handler): void
+    public function delete(string $path, array|callable $handler, string $name = ''): void
     {
-        $this->addRoute(HttpMethod::DELETE, $path, $handler);
+        $this->addRoute(HttpMethod::DELETE, $path, $handler, $name);
+    }
+
+    public static function route(string $name): string
+    {
+        return self::$namedRoutes[$name] ?? '';
     }
 
     public function group(string $prefix): void
@@ -67,9 +73,13 @@ class Router
         return $full === '/' ? '/' : rtrim($full, '/');
     }
 
-    private function addRoute(HttpMethod $method, string $path, array|callable $handler): void
+    private function addRoute(HttpMethod $method, string $path, array|callable $handler, string $name = ''): void
     {
         $path = $this->resolvePath($path);
+
+        if ($name !== '') {
+            self::$namedRoutes[$name] = $path;
+        }
 
         if (!str_contains($path, '{')) {
             $this->staticRoutes[$method->value][$path] = [$handler, $this->currentMiddleware];
