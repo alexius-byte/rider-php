@@ -173,6 +173,22 @@ $db->random();
 $db->count();
 ```
 
+### Sort
+
+In-memory sort by a key extracted from each item. The callback receives one item and returns any comparable value — lower values come first.
+
+```php
+$users = $db->sortBy($users, fn($u) => $u->name);
+
+$users = $db->sortBy($users, fn($u) => match($u->status) {
+    'active'  => 0,
+    'pending' => 1,
+    default   => 2,
+});
+```
+
+Each key is computed once (O(n)), not once per comparison.
+
 ### Write
 
 ```php

@@ -43,6 +43,13 @@ abstract class Model
         return $this;
     }
 
+    public function sortBy(array $items, callable $keyFn): array
+    {
+        $indexed = array_map(fn($item) => [$keyFn($item), $item], $items);
+        usort($indexed, fn($a, $b) => $a[0] <=> $b[0]);
+        return array_column($indexed, 1);
+    }
+
     public function findAll(): array
     {
         $stmt = $this->pdo->prepare("SELECT * FROM {$this->table}" . $this->buildOrderBy());
