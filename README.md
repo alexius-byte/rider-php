@@ -332,6 +332,48 @@ MIME is detected via `finfo` — `$_FILES['type']` is never trusted. The stored 
 
 ---
 
+## CORS
+
+```php
+// Allow all origins
+Cors::allow('*');
+
+// Allow specific origins only
+Cors::allow(['https://app.example.com', 'https://example.com']);
+
+// With credentials (cookies / Authorization header)
+Cors::allow(
+    origins: ['https://app.example.com'],
+    credentials: true
+);
+
+// Custom methods, headers, and cache duration
+Cors::allow(
+    origins: '*',
+    methods: ['GET', 'POST'],
+    headers: ['Content-Type', 'Authorization'],
+    maxAge: 3600
+);
+```
+
+Call before any output or routing logic — `OPTIONS` preflight requests are answered with `204` and execution stops immediately.
+
+`credentials: true` is silently ignored when `origins` is `'*'` — browsers block that combination regardless.
+
+### Parameters
+
+| Parameter | Type | Default |
+|---|---|---|
+| `origins` | `string\|array` | `'*'` |
+| `methods` | `array` | `['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS']` |
+| `headers` | `array` | `['Content-Type', 'Authorization', 'X-Requested-With']` |
+| `credentials` | `bool` | `false` |
+| `maxAge` | `int` | `86400` |
+
+When `origins` is an array, the request `Origin` is matched against the list. If no match is found, no CORS headers are emitted. A `Vary: Origin` header is added automatically for specific-origin responses so proxies cache them correctly.
+
+---
+
 ## SSL
 
 ### Symmetric encryption (AES-256-GCM)
