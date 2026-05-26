@@ -283,6 +283,13 @@ abstract class Model
         return $stmt->rowCount();
     }
 
+    public function deleteAll(): int
+    {
+        $stmt = $this->pdo->prepare("DELETE FROM {$this->table}");
+        $stmt->execute();
+        return $stmt->rowCount();
+    }
+
     public function query(string $sql, mixed $params = []): array
     {
         $param = is_array($params) ? $params : [$params];
