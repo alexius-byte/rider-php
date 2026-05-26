@@ -374,6 +374,63 @@ When `origins` is an array, the request `Origin` is matched against the list. If
 
 ---
 
+## Container
+
+```php
+$container = new Container();
+```
+
+### Binding
+
+```php
+// new instance on every get()
+$container->bind(LoggerInterface::class, FileLogger::class);
+
+// factory closure
+$container->bind(Mailer::class, fn($c) => new Mailer($c->get(Config::class)));
+
+// single instance for every get()
+$container->singleton(Database::class, DatabaseMysql::class);
+
+// pre-built instance
+$container->instance('config', $config);
+```
+
+### Resolving
+
+```php
+$logger = $container->get(LoggerInterface::class);
+
+$container->has(LoggerInterface::class); // bool
+```
+
+### Auto-wiring
+
+Classes with typed constructor parameters are resolved automatically — no registration needed.
+
+```php
+class UserService
+{
+    public function __construct(
+        private readonly UserRepository $repository,
+        private readonly Mailer $mailer,
+    ) {}
+}
+
+$service = $container->get(UserService::class);
+```
+
+Constructor parameters are resolved recursively. Unresolvable built-in types without a default value throw `ContainerException`.
+
+### Exceptions
+
+| Exception | When |
+|---|---|
+| `NotFoundException` | `get()` called with an id that has no binding and is not an existing class |
+| `ContainerException` | Class is not instantiable, parameter cannot be resolved, or circular dependency detected |
+
+---
+
 ## SSL
 
 ### Symmetric encryption (AES-256-GCM)
