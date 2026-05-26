@@ -49,7 +49,7 @@ class Router
 
     public function group(string $prefix): void
     {
-        $this->currentGroup = rtrim($prefix, '/');
+        $this->currentGroup = rtrim('/' . ltrim($prefix, '/'), '/');
     }
 
     public function resetGroup(): void
