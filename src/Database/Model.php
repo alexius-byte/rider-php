@@ -75,13 +75,13 @@ abstract class Model
         return $stmt->fetchAll();
     }
 
-    public function search(string $column, string $value): array
+    public function search(array|string $column, string $value): array
     {
         $order = $this->buildOrderBy();
-        $stmt = $this->pdo->prepare(
-            "SELECT * FROM {$this->table} WHERE {$column} LIKE ?" . $order
-        );
-        $stmt->execute(["%{$value}%"]);
+        $columns = is_array($column) ? $column : [$column];
+        $like = implode(' OR ', array_map(fn($c) => "`{$c}` LIKE ?", $columns));
+        $stmt = $this->pdo->prepare("SELECT * FROM {$this->table} WHERE {$like}" . $order);
+        $stmt->execute(array_fill(0, count($columns), "%{$value}%"));
 
         return $stmt->fetchAll();
     }
