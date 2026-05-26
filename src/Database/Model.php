@@ -143,7 +143,7 @@ abstract class Model
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($params);
 
-        return (array) $stmt->fetch();
+        return (array)$stmt->fetch();
     }
 
     public function create(array $data): int|string
@@ -188,7 +188,7 @@ abstract class Model
 
         foreach ($data as $key => $value) {
             if (is_string($value) && preg_match('/^([+-])(\d+(?:\.\d+)?)$/', $value, $m)) {
-                $amount = str_contains($m[2], '.') ? (float) $m[2] : (int) $m[2];
+                $amount = str_contains($m[2], '.') ? (float)$m[2] : (int)$m[2];
                 $incrementals[$key] = ['op' => $m[1], 'amount' => $amount];
                 $insertData[$key] = $amount;
             } else {
@@ -274,6 +274,13 @@ abstract class Model
         $stmt = $this->pdo->prepare("DELETE FROM {$this->table} WHERE {$this->primaryKey} = ?");
         $stmt->execute([$id]);
         return $stmt->rowCount() > 0;
+    }
+
+    public function deleteBy(string $column, string $value): int
+    {
+        $stmt = $this->pdo->prepare("DELETE FROM {$this->table} WHERE `{$column}` = ?");
+        $stmt->execute([$value]);
+        return $stmt->rowCount();
     }
 
     public function query(string $sql, mixed $params = []): array
