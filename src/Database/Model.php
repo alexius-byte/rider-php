@@ -75,6 +75,36 @@ abstract class Model
         return $stmt->fetchAll();
     }
 
+    public function whereIn(string $column, array $values): array
+    {
+        if ($values === []) {
+            return [];
+        }
+
+        $placeholders = implode(', ', array_fill(0, count($values), '?'));
+        $stmt = $this->pdo->prepare(
+            "SELECT * FROM {$this->table} WHERE `{$column}` IN ({$placeholders})" . $this->buildOrderBy()
+        );
+        $stmt->execute(array_values($values));
+
+        return $stmt->fetchAll();
+    }
+
+    public function whereNotIn(string $column, array $values): array
+    {
+        if ($values === []) {
+            return $this->findAll();
+        }
+
+        $placeholders = implode(', ', array_fill(0, count($values), '?'));
+        $stmt = $this->pdo->prepare(
+            "SELECT * FROM {$this->table} WHERE `{$column}` NOT IN ({$placeholders})" . $this->buildOrderBy()
+        );
+        $stmt->execute(array_values($values));
+
+        return $stmt->fetchAll();
+    }
+
     public function search(array|string $column, string $value): array
     {
         $order = $this->buildOrderBy();
