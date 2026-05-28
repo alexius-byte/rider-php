@@ -140,18 +140,18 @@ class Router
             }
         }
 
-        foreach (array_keys($this->staticRoutes) as $registeredMethod) {
-            if ($registeredMethod !== $method && isset($this->staticRoutes[$registeredMethod][$path])) {
+        foreach ($this->staticRoutes as $registeredMethod => $routes) {
+            if ($registeredMethod !== $method && isset($routes[$path])) {
                 $this->errorCode = 405;
                 return;
             }
         }
 
-        foreach (array_keys($this->dynamicRoutes) as $registeredMethod) {
+        foreach ($this->dynamicRoutes as $registeredMethod => $routes) {
             if ($registeredMethod === $method) {
                 continue;
             }
-            foreach ($this->dynamicRoutes[$registeredMethod] as [$pattern]) {
+            foreach ($routes as [$pattern]) {
                 if (preg_match($pattern, $path)) {
                     $this->errorCode = 405;
                     return;
