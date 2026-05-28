@@ -8,6 +8,7 @@ use Closure;
 use ReflectionClass;
 use ReflectionException;
 use ReflectionMethod;
+use ReflectionNamedType;
 use Rider\System\Http\HttpResponse;
 use Rider\System\Http\Request;
 use Rider\System\Http\Exception\RequestException;
@@ -166,6 +167,36 @@ class Router
         return $this->errorCode;
     }
 
+    private static array $dependencyCache = [];
+
+    private function resolveConstructorDependencies(string $class): array
+    {
+        if (array_key_exists($class, self::$dependencyCache)) {
+            return array_map(fn(string $type) => new $type(), self::$dependencyCache[$class]);
+        }
+
+        $constructor = (new ReflectionClass($class))->getConstructor();
+
+        if ($constructor === null) {
+            self::$dependencyCache[$class] = [];
+            return [];
+        }
+
+        $types = [];
+        foreach ($constructor->getParameters() as $param) {
+            if ($param->isDefaultValueAvailable()) {
+                continue;
+            }
+            $type = $param->getType();
+            if ($type instanceof ReflectionNamedType && !$type->isBuiltin()) {
+                $types[] = $type->getName();
+            }
+        }
+
+        self::$dependencyCache[$class] = $types;
+        return array_map(fn(string $type) => new $type(), $types);
+    }
+
     private function runMiddlewares(array $middlewares): bool
     {
         foreach ($middlewares as $middlewareClass) {
@@ -193,7 +224,8 @@ class Router
                 return;
             }
 
-            (new $class())->$method($request);
+            $deps = $this->resolveConstructorDependencies($class);
+            (new $class(...$deps))->$method($request);
         } catch (SchemaException $e) {
             (new HttpResponse())->json(['error' => true, 'message' => array_values($e->errors())[0]], 422);
         } catch (RequestException $e) {
