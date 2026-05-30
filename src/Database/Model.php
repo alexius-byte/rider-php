@@ -50,27 +50,34 @@ abstract class Model
         return array_column($indexed, 1);
     }
 
-    public function findAll(): array
+    public function findAll(?int $limit = null, int $offset = 0): array
     {
-        $stmt = $this->pdo->prepare("SELECT * FROM {$this->table}" . $this->buildOrderBy());
+        $sql = "SELECT * FROM {$this->table}" . $this->buildOrderBy();
+
+        if ($limit !== null) {
+            $sql .= " LIMIT {$limit} OFFSET {$offset}";
+        }
+
+        $stmt = $this->pdo->prepare($sql);
         $stmt->execute();
 
         return $stmt->fetchAll();
     }
 
-    public function findBy(string $column, mixed $value, bool $all = true): array|object|null
+    public function findBy(string $column, mixed $value, bool $all = true, ?int $limit = null, int $offset = 0): array|object|null
     {
-        $order = $all ? $this->buildOrderBy() : '';
-        $this->orderByColumn = null;
-
-        $sql = "SELECT * FROM {$this->table} WHERE {$column} = ?" . ($all ? $order : ' LIMIT 1');
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->execute([$value]);
-
         if (!$all) {
+            $this->orderByColumn = null;
+            $stmt = $this->pdo->prepare("SELECT * FROM {$this->table} WHERE {$column} = ? LIMIT 1");
+            $stmt->execute([$value]);
             $result = $stmt->fetch();
             return $result === false ? null : $result;
         }
+
+        $order = $this->buildOrderBy();
+        $limitClause = $limit !== null ? " LIMIT {$limit} OFFSET {$offset}" : '';
+        $stmt = $this->pdo->prepare("SELECT * FROM {$this->table} WHERE {$column} = ?" . $order . $limitClause);
+        $stmt->execute([$value]);
 
         return $stmt->fetchAll();
     }

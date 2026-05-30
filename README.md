@@ -246,6 +246,62 @@ $truncate->truncate();
 
 ---
 
+## Paginator
+
+### Simple mode
+
+Loads all rows into PHP memory, then slices. Suitable for small tables only.
+
+```php
+$users = new User();
+
+$page = (new Paginator())->create(
+    query: fn() => $users->findAll(),
+    page: 1,
+    perPage: 25,
+);
+```
+
+### Efficient mode
+
+Two queries — `COUNT(*)` first, then `SELECT … LIMIT ? OFFSET ?`. Use this for any table that can grow.
+
+```php
+$page = (new Paginator())->create(
+    query: fn($limit, $offset) => $users->findAll($limit, $offset),
+    page: 1,
+    perPage: 25,
+    count: fn() => $users->count(),
+);
+
+// Filtered
+$page = (new Paginator())->create(
+    query: fn($limit, $offset) => $users->findBy('status', 'active', limit: $limit, offset: $offset),
+    page: 1,
+    perPage: 25,
+    count: fn() => $users->count('status', 'active'),
+);
+```
+
+### Page object
+
+```php
+$page->data;        // array — records for the current page
+$page->total;       // int   — total records across all pages
+$page->perPage;     // int   — records per page (capped at 1 000)
+$page->currentPage; // int   — current page number
+$page->lastPage;    // int   — total number of pages
+$page->from;        // int   — index of the first record shown (1-based), 0 when empty
+$page->to;          // int   — index of the last record shown, 0 when empty
+$page->hasNext;     // bool
+$page->hasPrev;     // bool
+```
+
+Requesting a page beyond `lastPage` returns `data: []`, `from: 0`, `to: 0`, `hasNext: false`, `hasPrev: false`.  
+`perPage` is silently capped at `1 000`.
+
+---
+
 ## Migrations
 
 ```bash
