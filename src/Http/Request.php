@@ -69,6 +69,11 @@ class Request
         return $this->resolve($this->args, $key, 'route argument');
     }
 
+    public function fullArgs(): object
+    {
+        return $this->args;
+    }
+
     public function query(string $key): mixed
     {
         return $this->resolve($this->query, $key, 'query parameter');
