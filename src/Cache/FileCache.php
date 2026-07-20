@@ -136,7 +136,7 @@ class FileCache implements CacheInterface
 
     private function path(string $key): string
     {
-        return $this->cacheDir . DIRECTORY_SEPARATOR . md5($key) . '.cache';
+        return $this->cacheDir . DIRECTORY_SEPARATOR . $key . '.cache';
     }
 
     private function resolveExpiry(null|int|DateInterval $ttl): ?int
