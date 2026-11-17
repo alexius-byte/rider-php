@@ -1,0 +1,5 @@
+.env
+.idea/
+vendor/
+public/index.php
+src/Test/*
