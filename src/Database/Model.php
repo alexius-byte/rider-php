@@ -327,12 +327,13 @@ abstract class Model
         return $stmt->rowCount();
     }
 
-    public function query(string $sql, mixed $params = [], bool $all = true): array|object
+    public function query(string $sql, mixed $params = [], bool $all = true): array|object|null
     {
         $param = is_array($params) ? $params : [$params];
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($param);
-        return ($all ? $stmt->fetchAll() : $stmt->fetch());
+        $result = ($all ? $stmt->fetchAll() : $stmt->fetch());
+        return empty($result) ? null : $result;
     }
 
     public function execute(string $sql, array $params = []): bool
