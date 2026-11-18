@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Rider\System\Database;
 
-use PDO;
 use DateTime;
+use PDO;
 use Throwable;
 
 abstract class Model
@@ -327,12 +327,12 @@ abstract class Model
         return $stmt->rowCount();
     }
 
-    public function query(string $sql, mixed $params = []): array
+    public function query(string $sql, mixed $params = [], bool $all = true): array|object
     {
         $param = is_array($params) ? $params : [$params];
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($param);
-        return $stmt->fetchAll();
+        return ($all ? $stmt->fetchAll() : $stmt->fetch());
     }
 
     public function execute(string $sql, array $params = []): bool
