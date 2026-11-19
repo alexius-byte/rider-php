@@ -15,7 +15,7 @@ abstract class Model
     protected array $fillable = [];
     protected bool $timestamps = true;
 
-    private PDO $pdo;
+    protected PDO $pdo;
     private ?string $orderByColumn = null;
     private OrderDirection $orderByDir = OrderDirection::DESC;
 
